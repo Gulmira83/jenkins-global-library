@@ -130,7 +130,7 @@ def runPipeline() {
             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: "nexus-docker-creds", usernameVariable: 'docker_username', passwordVariable: 'docker_password']]) {
               sh """#!/bin/bash -e
 
-              until docker login --username ${env.docker_username} --password ${env.docker_password} https://docker.fuchicorp.com
+              until docker login --username ${env.docker_username} --password ${env.docker_password} https://docker.devops-chicago.com
               do
                 echo "Trying to login to docker private system"
                 sleep 3
@@ -138,7 +138,7 @@ def runPipeline() {
               """
             }
             // Push image to the Nexus with new release
-            docker.withRegistry('https://docker.fuchicorp.com', 'nexus-docker-creds') {
+            docker.withRegistry('https://docker.devops-chicago.com', 'nexus-docker-creds') {
                 dockerImage.push("${gitCommitHash}") 
 
                 if (params.PUSH_LATEST) {
@@ -149,10 +149,9 @@ def runPipeline() {
 
 
           stage("Clean up") {
-            sh "docker rmi --no-prune docker.fuchicorp.com/${repositoryName}:${gitCommitHash}"
 
             if (params.PUSH_LATEST) {
-              sh "docker rmi --no-prune docker.fuchicorp.com/${repositoryName}:latest"
+              sh "docker rmi --no-prune docker.devops-chicago.com/${repositoryName}:latest"
             }
           }
 
