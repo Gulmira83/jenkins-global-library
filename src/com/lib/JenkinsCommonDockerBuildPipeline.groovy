@@ -11,6 +11,7 @@ def runPipeline() {
   def gitCommitHash = ""
   def branch = "${scm.branches[0].name}".replaceAll(/^\*\//, '')
   def k8slabel = "jenkins-pipeline-${UUID.randomUUID().toString()}"
+  def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
   def repositoryName = "${JOB_NAME}"
       .split('/')[0]
       .replace('-fuchicorp', '')

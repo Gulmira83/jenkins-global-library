@@ -158,7 +158,6 @@ def runPipeline() {
             "Build": env.BUILD_NUMBER
           ])))
         }
-        }
         
         container('fuchicorptools') {
 
@@ -283,7 +282,8 @@ def runPipeline() {
        }
       }
     }
-  } catch (e) {
+  }
+}   catch (e) {
     currentBuild.result = 'FAILURE'
     println("ERROR Detected:")
     println(e.getMessage())
