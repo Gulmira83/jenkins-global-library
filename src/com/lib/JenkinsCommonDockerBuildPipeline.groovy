@@ -110,7 +110,7 @@ def runPipeline() {
 
   podTemplate(name: k8slabel, label: k8slabel, yaml: slavePodTemplate) {
       node(k8slabel) {
-
+        timestamps {
         container('fuchicorptools') {
           stage("Pulling the code") {
             checkout scm
@@ -168,7 +168,8 @@ def runPipeline() {
         } 
       }
     }
-  } catch (e) {
+  }
+}   catch (e) {
     currentBuild.result = 'FAILURE'
     println("ERROR Detected:")
     println(e.getMessage())
