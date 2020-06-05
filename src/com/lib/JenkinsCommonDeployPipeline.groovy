@@ -148,8 +148,8 @@ def runPipeline() {
   podTemplate(name: k8slabel, label: k8slabel, yaml: slavePodTemplate, showRawYaml: params.debugMode) {
       node(k8slabel) {
 
-        timestamps {
-           stage("Deployment Info") {
+          timestamps {
+          stage("Deployment Info") {
 
           // Colecting information to show on stage <Deployment Info>
           println(prettyPrint(toJson([
@@ -159,7 +159,7 @@ def runPipeline() {
             "Build": env.BUILD_NUMBER
           ])))
         }
-
+        }
         container('fuchicorptools') {
 
           stage("Polling SCM") {
@@ -289,6 +289,6 @@ def runPipeline() {
     println(e.getMessage())
   }
 }
-}
+
 
 return this
