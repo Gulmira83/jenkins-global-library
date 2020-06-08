@@ -11,6 +11,7 @@ def runPipeline() {
   def gitCommitHash = ""
   def branch = "${scm.branches[0].name}".replaceAll(/^\*\//, '')
   def k8slabel = "jenkins-pipeline-${UUID.randomUUID().toString()}"
+  def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
   def repositoryName = "${JOB_NAME}"
       .split('/')[0]
       .replace('-fuchicorp', '')
@@ -110,7 +111,7 @@ def runPipeline() {
 
   podTemplate(name: k8slabel, label: k8slabel, yaml: slavePodTemplate) {
       node(k8slabel) {
-
+        timestamps {
         container('fuchicorptools') {
           stage("Pulling the code") {
             checkout scm
@@ -168,7 +169,8 @@ def runPipeline() {
         } 
       }
     }
-  } catch (e) {
+  }
+}   catch (e) {
     currentBuild.result = 'FAILURE'
     println("ERROR Detected:")
     println(e.getMessage())

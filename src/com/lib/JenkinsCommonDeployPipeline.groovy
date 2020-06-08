@@ -14,6 +14,7 @@ def runPipeline() {
   def gitUrl          = "${scm.getUserRemoteConfigs()[0].getUrl()}"
   def k8slabel        = "jenkins-pipeline-${UUID.randomUUID().toString()}"
   def allEnvironments = ['dev', 'qa', 'test', 'prod']
+  def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
   def findDockerImageScript = '''
     import groovy.json.JsonSlurper
     def findDockerImages(branchName) {
@@ -147,7 +148,8 @@ def runPipeline() {
   podTemplate(name: k8slabel, label: k8slabel, yaml: slavePodTemplate, showRawYaml: params.debugMode) {
       node(k8slabel) {
 
-        stage("Deployment Info") {
+          timestamps { 
+            stage("Deployment Info") {
 
           // Colecting information to show on stage <Deployment Info>
           println(prettyPrint(toJson([
@@ -157,7 +159,7 @@ def runPipeline() {
             "Build": env.BUILD_NUMBER
           ])))
         }
-
+        
         container('fuchicorptools') {
 
           stage("Polling SCM") {
@@ -281,11 +283,13 @@ def runPipeline() {
        }
       }
     }
-  } catch (e) {
+  }
+}   catch (e) {
     currentBuild.result = 'FAILURE'
     println("ERROR Detected:")
     println(e.getMessage())
   }
 }
+
 
 return this
