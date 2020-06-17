@@ -9,6 +9,7 @@ def runPipeline() {
   def triggerUser = commonFunctions.getBuildUser()
   def environment = ""
   def gitCommitHash = ""
+  def domain_name = ""
   def branch = "${scm.branches[0].name}".replaceAll(/^\*\//, '')
   def k8slabel = "jenkins-pipeline-${UUID.randomUUID().toString()}"
   def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
@@ -40,7 +41,9 @@ def runPipeline() {
     branch = 'master'
   }
   
-  
+  node('master') {
+      domain_name = sh(returnStdout: true, script: 'echo $DOMAIN_NAME').trim()
+  }
 
   try {
     properties([
@@ -131,7 +134,7 @@ def runPipeline() {
             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: "nexus-docker-creds", usernameVariable: 'docker_username', passwordVariable: 'docker_password']]) {
               sh """#!/bin/bash -e
 
-              until docker login --username ${env.docker_username} --password ${env.docker_password} https://docker.fuchicorp.com
+              until docker login --username ${env.docker_username} --password ${env.docker_password} https://docker.${domain_name}
               do
                 echo "Trying to login to docker private system"
                 sleep 3
@@ -139,7 +142,7 @@ def runPipeline() {
               """
             }
             // Push image to the Nexus with new release
-            docker.withRegistry('https://docker.fuchicorp.com', 'nexus-docker-creds') {
+            docker.withRegistry("https://docker.${domain_name}", 'nexus-docker-creds') {
                 dockerImage.push("${gitCommitHash}") 
 
                 if (params.PUSH_LATEST) {
@@ -150,10 +153,10 @@ def runPipeline() {
 
 
           stage("Clean up") {
-            sh "docker rmi --no-prune docker.fuchicorp.com/${repositoryName}:${gitCommitHash}"
+            sh "docker rmi --no-prune docker.${domain_name}/${repositoryName}:${gitCommitHash}"
 
             if (params.PUSH_LATEST) {
-              sh "docker rmi --no-prune docker.fuchicorp.com/${repositoryName}:latest"
+              sh "docker rmi --no-prune docker.${domain_name}/${repositoryName}:latest"
             }
           }
 
