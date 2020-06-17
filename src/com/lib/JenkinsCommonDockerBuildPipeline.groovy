@@ -142,7 +142,7 @@ def runPipeline() {
               """
             }
             // Push image to the Nexus with new release
-            docker.withRegistry('https://docker.${domain_name}', 'nexus-docker-creds') {
+            docker.withRegistry("https://docker.${domain_name}", 'nexus-docker-creds') {
                 dockerImage.push("${gitCommitHash}") 
 
                 if (params.PUSH_LATEST) {
