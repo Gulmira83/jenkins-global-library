@@ -15,25 +15,34 @@ def runPipeline() {
   def k8slabel        = "jenkins-pipeline-${UUID.randomUUID().toString()}"
   def allEnvironments = ['dev', 'qa', 'test', 'prod']
   def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
+  def domain_name = ""
+
+  node('master') {
+      domain_name = sh(returnStdout: true, script: 'echo $DOMAIN_NAME').trim()
+  }
+
   def findDockerImageScript = '''
     import groovy.json.JsonSlurper
-    def findDockerImages(branchName) {
+    def findDockerImages(branchName, domain_name) {
     def versionList = []
     def token       = ""
     def myJsonreader = new JsonSlurper()
-    def nexusData = myJsonreader.parse(new URL("https://nexus.fuchicorp.com/service/rest/v1/components?repository=fuchicorp"))
+    def nexusData = myJsonreader.parse(new URL("https://nexus.${domain_name}/service/rest/v1/components?repository=fuchicorp"))
     nexusData.items.each { if (it.name.contains(branchName)) { versionList.add(it.name + ":" + it.version) } }
     while (true) {
         if (nexusData.continuationToken) {
         token = nexusData.continuationToken
-        nexusData = myJsonreader.parse(new URL("https://nexus.fuchicorp.com/service/rest/v1/components?repository=fuchicorp&continuationToken=${token}"))
+        nexusData = myJsonreader.parse(new URL("https://nexus.${domain_name}/service/rest/v1/components?repository=fuchicorp&continuationToken=${token}"))
         nexusData.items.each { if (it.name.contains(branchName)) { versionList.add(it.name + ":" + it.version) } }
         }
         if (nexusData.continuationToken == null ) { break } }
     if(!versionList) { versionList.add("ImmageNotFound") } 
     return versionList.reverse(true) }
-    findDockerImages('%s')
-  '''
+    def domain_name     = "%s"
+    def deployment_name = "%s"
+    findDockerImages(deployment_name, domain_name)
+    '''
+
   def deploymentName = "${JOB_NAME}".split('/')[0].replace('-fuchicorp', '').replace('-build', '').replace('-deploy', '')
 
   try {
@@ -55,7 +64,7 @@ def runPipeline() {
       // ExtendedChoice Script is getting all jobs based on this application
       extendedChoice(bindings: '', description: 'Please select docker image to deploy', 
       descriptionPropertyValue: '', groovyClasspath: '', 
-      groovyScript:  String.format(findDockerImageScript, deploymentName) , multiSelectDelimiter: ',', 
+      groovyScript:  String.format(findDockerImageScript, deploymentName, domain_name), multiSelectDelimiter: ',', 
       name: 'selectedDockerImage', quoteValue: false, 
       saveJSONParameterToFile: false, type: 'PT_SINGLE_SELECT', 
       visibleItemCount: 5),
@@ -182,7 +191,7 @@ def runPipeline() {
             deployment_tfvars += """
               deployment_name        = \"${deploymentName}\"
               deployment_environment = \"${environment}\"
-              deployment_image       = \"docker.fuchicorp.com/${selectedDockerImage}\"
+              deployment_image       = \"docker.${domain_name}/${selectedDockerImage}\"
               credentials            = \"./fuchicorp-service-account.json\"
             """.stripIndent()
 
