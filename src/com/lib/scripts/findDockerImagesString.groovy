@@ -1,3 +1,4 @@
+def findDockerImageScript = '''
 import groovy.json.JsonSlurper
 def findDockerImages(branchName, domain_name) {
     def versionList = []
@@ -14,6 +15,10 @@ def findDockerImages(branchName, domain_name) {
     if (nexusData.continuationToken == null ) { break } }
     if(!versionList) { versionList.add("ImmageNotFound") } 
     return versionList.reverse(true) }
-def domain_name     = "fuchicorp.com"
-def deployment_name = "academy"
-println(findDockerImages(deployment_name, domain_name))
+def domain_name     = "%s"
+def deployment_name = "%s"
+findDockerImages(deployment_name, domain_name)
+'''
+
+print(String.format(findDockerImageScript, "fuchicorp.com", "academy"))
+
