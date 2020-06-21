@@ -193,6 +193,7 @@ def runPipeline() {
               deployment_environment = \"${environment}\"
               deployment_image       = \"docker.${domain_name}/${selectedDockerImage}\"
               credentials            = \"./fuchicorp-service-account.json\"
+              google_domain_name     = \"${domain_name}\"
             """.stripIndent()
 
             writeFile(
