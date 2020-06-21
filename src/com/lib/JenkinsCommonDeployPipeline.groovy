@@ -64,7 +64,7 @@ def runPipeline() {
       // ExtendedChoice Script is getting all jobs based on this application
       extendedChoice(bindings: '', description: 'Please select docker image to deploy', 
       descriptionPropertyValue: '', groovyClasspath: '', 
-      groovyScript:  String.format(findDockerImageScript, deploymentName, domain_name), multiSelectDelimiter: ',', 
+      groovyScript:  String.format(findDockerImageScript, domain_name, deploymentName), multiSelectDelimiter: ',', 
       name: 'selectedDockerImage', quoteValue: false, 
       saveJSONParameterToFile: false, type: 'PT_SINGLE_SELECT', 
       visibleItemCount: 5),
