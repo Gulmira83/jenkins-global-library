@@ -25,6 +25,7 @@ def runPipeline() {
   
   if (branch =~ '^v[0-9].[0-9]' || branch =~ '^v[0-9][0-9].[0-9]' ) {
     environment = 'prod' 
+    repositoryName = repositoryName + '-prod'
 
   } else if (branch.contains('dev-feature')) {
       environment = 'dev' 
@@ -41,6 +42,7 @@ def runPipeline() {
 
   } else if (branch == 'master') {
       environment = 'stage' 
+      repositoryName = repositoryName + '-stage'
   } 
 
   node('master') {
