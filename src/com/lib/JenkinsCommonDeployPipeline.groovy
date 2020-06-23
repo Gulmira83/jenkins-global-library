@@ -13,7 +13,7 @@ def runPipeline() {
   def branch          = "${scm.branches[0].name}".replaceAll(/^\*\//, '').replace("/", "-").toLowerCase()
   def gitUrl          = "${scm.getUserRemoteConfigs()[0].getUrl()}"
   def k8slabel        = "jenkins-pipeline-${UUID.randomUUID().toString()}"
-  def allEnvironments = ['dev', 'qa', 'test', 'prod']
+  def allEnvironments = ['dev', 'qa', 'test', 'stage', 'prod']
   def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
   def domain_name = ""
 
@@ -72,7 +72,7 @@ def runPipeline() {
       // Branch name to deploy environment 
       gitParameter(branch: '', branchFilter: 'origin/(.*)', defaultValue: 'origin/master', 
       description: 'Please select the branch name to deploy', name: 'branchName', 
-      quickFilterEnabled: true, selectedValue: 'NONE', sortMode: 'NONE', tagFilter: '*', type: 'PT_BRANCH'),
+      quickFilterEnabled: true, selectedValue: 'NONE', sortMode: 'NONE', tagFilter: '*', type: 'PT_BRANCH_TAG'),
       
       // list of environment getting from <allEnvironments> and defining variable <environment> to deploy 
       choice(name: 'environment', 

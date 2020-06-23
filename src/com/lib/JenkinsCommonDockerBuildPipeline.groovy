@@ -23,24 +23,28 @@ def runPipeline() {
       .split('/')[0]
       .replace('-build', '-deploy')
   
-  if (branch == 'master') {
+  if (branch =~ '^v[0-9].[0-9]' || branch =~ '^v[0-9][0-9].[0-9]' ) {
     environment = 'prod' 
-  } 
+    repositoryName = repositoryName + '-prod'
 
-  if (branch.contains('dev-feature')) {
-    environment = 'dev' 
-    repositoryName = repositoryName + 'dev-feature'
+  } else if (branch.contains('dev-feature')) {
+      environment = 'dev' 
+      repositoryName = repositoryName + '-dev-feature'
 
   } else if (branch.contains('qa-feature')) {
-    repositoryName = repositoryName + 'qa-feature'
-    environment = 'qa' 
+      repositoryName = repositoryName + '-qa-feature'
+      environment = 'qa' 
 
   } else if (branch.contains('PR')) {
-    repositoryName = repositoryName + 'pr-feature'
-    environment = 'test' 
-    branch = 'master'
-  }
-  
+      repositoryName = repositoryName + '-pr-feature'
+      environment = 'test' 
+      branch = 'master'
+
+  } else if (branch == 'master') {
+      environment = 'stage' 
+      repositoryName = repositoryName + '-stage'
+  } 
+
   node('master') {
       domain_name = sh(returnStdout: true, script: 'echo $DOMAIN_NAME').trim()
   }
