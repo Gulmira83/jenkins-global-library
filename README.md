@@ -20,6 +20,15 @@ Credentials
 Deploy job is using Kubernetes plugin in jenkins [link](https://github.com/jenkinsci/kubernetes-plugin) make sure 
 Docker build plugin in Jenkins [Link](https://jenkins.io/doc/book/pipeline/docker/)
 
+NOTE: Jenkins is discovering tags and branches in order to deploy to below environments accordingly.
+
+```
+master > stage
+tag > prod
+PR > test
+dev-feature > dev
+qa-feature > qa
+```
 
 ### Application build process 
 To be able to build the application you will need to define class `JenkinsCommonDockerBuildPipeline`  and call a function `runPipeline` You will need to make sure that build job is multi branch job. 
@@ -46,6 +55,7 @@ Example Code `JenkinsDeployer.groovy`
 def common = new com.lib.JenkinsCommonDeployPipeline()
 common.runPipeline()
 ```
+
 
 Same process you will need to push to SCM and create your Jenkins job with following name `APPNAME-deploy`. 
 ![](https://github.com/fuchicorp/jenkins-global-library/blob/master/docs/pictures/jenkins-deploy.png)
