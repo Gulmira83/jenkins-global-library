@@ -14,6 +14,8 @@ def findDockerImages(branchName, domain_name) {
     if (nexusData.continuationToken == null ) { break } }
     if(!versionList) { versionList.add("ImmageNotFound") } 
     return versionList.reverse(true) }
+
 def domain_name     = "fuchicorp.com"
-def deployment_name = "academy"
+def deployment_name = "isitup"
+
 println(findDockerImages(deployment_name, domain_name))

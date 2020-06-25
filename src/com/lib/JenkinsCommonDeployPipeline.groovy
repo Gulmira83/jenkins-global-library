@@ -14,13 +14,18 @@ def runPipeline() {
   def gitUrl          = "${scm.getUserRemoteConfigs()[0].getUrl()}"
   def k8slabel        = "jenkins-pipeline-${UUID.randomUUID().toString()}"
   def allEnvironments = ['dev', 'qa', 'test', 'stage', 'prod']
-  def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
   def domain_name = ""
 
+  // Making sure that jenkins is using by default CST time 
+  def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
+  
+
   node('master') {
+      // Getting the base domain name from Jenkins master < example: fuchicorp.com >
       domain_name = sh(returnStdout: true, script: 'echo $DOMAIN_NAME').trim()
   }
 
+  // Function to get list of docker images from nexus
   def findDockerImageScript = '''
     import groovy.json.JsonSlurper
     def findDockerImages(branchName, domain_name) {
@@ -42,7 +47,7 @@ def runPipeline() {
     def deployment_name = "%s"
     findDockerImages(deployment_name, domain_name)
     '''
-
+  // job name example-fuchicorp-deploy will be < example > 
   def deploymentName = "${JOB_NAME}".split('/')[0].replace('-fuchicorp', '').replace('-build', '').replace('-deploy', '')
 
   try {
@@ -156,28 +161,28 @@ def runPipeline() {
 
   podTemplate(name: k8slabel, label: k8slabel, yaml: slavePodTemplate, showRawYaml: params.debugMode) {
       node(k8slabel) {
+        timestamps { 
+          stage("Deployment Info") {
 
-          timestamps { 
-            stage("Deployment Info") {
-
-          // Colecting information to show on stage <Deployment Info>
-          println(prettyPrint(toJson([
-            "Environment" : environment,
-            "Deployment" : deploymentName,
-            "Builder" : triggerUser,
-            "Build": env.BUILD_NUMBER
-          ])))
-        }
-        
-        container('fuchicorptools') {
-
-          stage("Polling SCM") {
-            checkout([$class: 'GitSCM', 
-                       branches: [[name: branchName]], 
-                       doGenerateSubmoduleConfigurations: false, 
-                       extensions: [], submoduleCfg: [], 
-                       userRemoteConfigs: [[url: gitUrl]]])
+            // Colecting information to show on stage <Deployment Info>
+            println(prettyPrint(toJson([
+              "Environment" : environment,
+              "Deployment" : deploymentName,
+              "Builder" : triggerUser,
+              "Branch" : branchName,
+              "Build": env.BUILD_NUMBER
+            ])))
           }
+        
+          container('fuchicorptools') {
+
+            stage("Polling SCM") {
+              checkout([$class: 'GitSCM', 
+                        branches: [[name: branchName]], 
+                        doGenerateSubmoduleConfigurations: false, 
+                        extensions: [], submoduleCfg: [], 
+                        userRemoteConfigs: [[url: gitUrl]]])
+            }
 
           stage('Generate Configurations') {
             sh """
@@ -187,7 +192,7 @@ def runPipeline() {
               ## This script should move to docker container to set up ~/.kube/config
               sh /scripts/Dockerfile/set-config.sh
             """
-            // sh /scripts/Dockerfile/set-config.sh Should go to Docker container CMD so we do not have to call on slave 
+            // Generating all tfvars for the application
             deployment_tfvars += """
               deployment_name        = \"${deploymentName}\"
               deployment_environment = \"${environment}\"
@@ -228,7 +233,7 @@ def runPipeline() {
             
                 println("Found default configurations appanded to main configuration")
             } catch (e) {
-                println("Default configurations not founds. Skiping!!")
+                println("Default configurations not found. Skiping!!")
             }
               
           }
@@ -272,7 +277,7 @@ def runPipeline() {
                   println("""
 
                     Sorry I can not destroy Tools!!!
-                    I can Destroy only dev and qa branch
+                    I can Destroy only following environments dev, qa, test, stage
 
                   """)
                 }
