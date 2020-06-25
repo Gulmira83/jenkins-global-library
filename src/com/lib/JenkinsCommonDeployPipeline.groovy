@@ -169,6 +169,7 @@ def runPipeline() {
               "Environment" : environment,
               "Deployment" : deploymentName,
               "Builder" : triggerUser,
+              "Branch" : branchName,
               "Build": env.BUILD_NUMBER
             ])))
           }
