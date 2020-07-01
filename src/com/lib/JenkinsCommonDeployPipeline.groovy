@@ -248,7 +248,7 @@ def runPipeline() {
                       echo "Running set environment script!!"
                       source ./set-env.sh "deployment_configuration.tfvars"
 
-
+                      echo $?
                       echo "Running terraform apply"
                       echo | terraform apply --auto-approve -var-file="\$DATAFILE"
                   '''
