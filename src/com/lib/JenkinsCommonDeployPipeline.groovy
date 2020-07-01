@@ -14,7 +14,10 @@ def runPipeline() {
   def gitUrl          = "${scm.getUserRemoteConfigs()[0].getUrl()}"
   def k8slabel        = "jenkins-pipeline-${UUID.randomUUID().toString()}"
   def allEnvironments = ['dev', 'qa', 'test', 'stage', 'prod']
-  def domain_name = ""
+  def domain_name     = ""
+  def debugModeScript = '''
+  set -e
+  '''
 
   // Making sure that jenkins is using by default CST time 
   def timeStamp = Calendar.getInstance().getTime().format('ssmmhh-ddMMYYY',TimeZone.getTimeZone('CST'))
@@ -211,6 +214,10 @@ def runPipeline() {
                 cat ${WORKSPACE}/deployments/terraform/deployment_configuration.tfvars
                 echo #############################################################
               """
+              debugModeScript = '''
+              set -ex
+              echo "Running the scripts on Debug mode!!!"
+              '''
             }
             
             try {
@@ -243,20 +250,30 @@ def runPipeline() {
 
                 dir("${WORKSPACE}/deployments/terraform/") {
                   echo "##### Terraform Applying the Changes ####"
-                  sh '''#!/bin/bash -e
-                    source set-env.sh deployment_configuration.tfvars
-                    terraform apply --auto-approve -var-file=deployment_configuration.tfvars
-                  '''
+                  sh """#!/bin/bash
+                      ${debugModeScript}
+                      echo "Running set environment script!!"
+                      source "./set-env.sh" "deployment_configuration.tfvars"
+
+                      echo "Running terraform apply"
+                      echo | terraform apply --auto-approve -var-file="\$DATAFILE"
+                  """
+                  
                 }
 
               } else {
 
                 dir("${WORKSPACE}/deployments/terraform/") {
                   echo "##### Terraform Plan (Check) the Changes #### "
-                  sh '''#!/bin/bash -e
-                    source set-env.sh deployment_configuration.tfvars
-                    terraform plan -var-file=deployment_configuration.tfvars
-                  '''
+                  sh """#!/bin/bash
+                      ${debugModeScript}
+                      echo "Running set environment script!!"
+                      source ./set-env.sh "deployment_configuration.tfvars"
+
+
+                      echo "Running terraform apply"
+                      echo | terraform plan --auto-approve -var-file="\$DATAFILE"
+                  """
                 }
               }
             }
@@ -268,10 +285,15 @@ def runPipeline() {
                 if ( environment != 'tools' ) {
                   dir("${WORKSPACE}/deployments/terraform/") {
                     echo "##### Terraform Destroing ####"
-                    sh '''#!/bin/bash -e
-                      source set-env.sh deployment_configuration.tfvars
-                      terraform destroy --auto-approve -var-file=deployment_configuration.tfvars
-                    '''
+                    sh """#!/bin/bash
+                      ${debugModeScript}
+                      echo "Running set environment script!!"
+                      source ./set-env.sh "deployment_configuration.tfvars"
+
+
+                      echo "Running terraform apply"
+                      echo | terraform destroy --auto-approve -var-file="\$DATAFILE"
+                    """
                   }
                 } else {
                   println("""
