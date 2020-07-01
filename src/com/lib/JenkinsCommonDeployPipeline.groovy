@@ -244,11 +244,12 @@ def runPipeline() {
                 dir("${WORKSPACE}/deployments/terraform/") {
                   echo "##### Terraform Applying the Changes ####"
                   sh '''#!/bin/bash -e
-                    echo "Running set environment script!!"
-                    source set-env.sh deployment_configuration.tfvars 
+                      echo "Running set environment script!!"
+                      source ./set-env.sh "deployment_configuration.tfvars"
 
-                    echo "Running terraform apply"
-                    echo | terraform apply --auto-approve -var-file=deployment_configuration.tfvars
+
+                      echo "Running terraform apply"
+                      echo | terraform apply --auto-approve -var-file="\$DATAFILE"
                   '''
                 }
 
@@ -257,11 +258,12 @@ def runPipeline() {
                 dir("${WORKSPACE}/deployments/terraform/") {
                   echo "##### Terraform Plan (Check) the Changes #### "
                   sh '''#!/bin/bash -e
-                    echo "Running set environment script!!"
-                    source set-env.sh deployment_configuration.tfvars
+                      echo "Running set environment script!!"
+                      source ./set-env.sh "deployment_configuration.tfvars"
 
-                    echo "Running terraform plan"
-                    echo | terraform plan -var-file=deployment_configuration.tfvars
+
+                      echo "Running terraform apply"
+                      echo | terraform plan --auto-approve -var-file="\$DATAFILE"
                   '''
                 }
               }
@@ -276,10 +278,11 @@ def runPipeline() {
                     echo "##### Terraform Destroing ####"
                     sh '''#!/bin/bash -e
                       echo "Running set environment script!!"
-                      source set-env.sh deployment_configuration.tfvars
+                      source ./set-env.sh "deployment_configuration.tfvars"
 
-                      echo "Running terraform destroy"
-                      echo | terraform destroy --auto-approve -var-file=deployment_configuration.tfvars
+
+                      echo "Running terraform apply"
+                      echo | terraform destroy --auto-approve -var-file="\$DATAFILE"
                     '''
                   }
                 } else {
