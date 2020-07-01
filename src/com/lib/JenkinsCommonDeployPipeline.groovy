@@ -243,7 +243,8 @@ def runPipeline() {
 
                 dir("${WORKSPACE}/deployments/terraform/") {
                   echo "##### Terraform Applying the Changes ####"
-                  sh '''#!/bin/bash -e
+                  sh '''#!/bin/bash
+                      set +e
                       echo "Running set environment script!!"
                       source ./set-env.sh "deployment_configuration.tfvars"
 
