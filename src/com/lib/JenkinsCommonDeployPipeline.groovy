@@ -244,11 +244,10 @@ def runPipeline() {
                 dir("${WORKSPACE}/deployments/terraform/") {
                   echo "##### Terraform Applying the Changes ####"
                   sh '''#!/bin/bash
-                      set +e
+                      set -ex
                       echo "Running set environment script!!"
-                      source ./set-env.sh "deployment_configuration.tfvars"
+                      source "./set-env.sh" "deployment_configuration.tfvars"
 
-                      echo $?
                       echo "Running terraform apply"
                       echo | terraform apply --auto-approve -var-file="\$DATAFILE"
                   '''
